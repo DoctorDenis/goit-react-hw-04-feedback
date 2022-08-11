@@ -1,57 +1,61 @@
 import { StyledStatistics } from './Statistics/Statistics.styled';
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import FeedbackOptions from './FeedbackOptions/FeedbackOptions';
 import Section from './Section';
 import Notification from './Notification';
 
-export default class Widget extends Component {
-  state = {
-    good: 0,
-    neutral: 0,
-    bad: 0,
+export default function Widget() {
+  const [good, setGood] = useState(0);
+  const [neutral, setNeutral] = useState(0);
+  const [bad, setBad] = useState(0);
+
+  const onBtnClick = event => {
+    switch (event.target.id) {
+      case 'good':
+        setGood(good => good + 1);
+        break;
+      case 'neutral':
+        setNeutral(neutral => neutral + 1);
+        break;
+      case 'bad':
+        setBad(bad => bad + 1);
+        break;
+      default:
+        return;
+    }
   };
 
-  onBtnClick = event => {
-    this.setState(prevState => {
-      return { [event.target.id]: (prevState[event.target.id] += 1) };
-    });
-  };
-
-  countTotalFeedback = () => {
-    const { good, neutral, bad } = this.state;
+  const countTotalFeedback = () => {
     return good + neutral + bad;
   };
 
-  countPositiveFeedbackPercentage = () => {
-    return (this.state.good / this.countTotalFeedback()) * 100;
+  const countPositiveFeedbackPercentage = () => {
+    return (good / countTotalFeedback()) * 100;
   };
 
-  render() {
-    const { good, neutral, bad } = this.state;
-    return (
-      <>
-        <Section title="Please leave feedback">
-          <FeedbackOptions
-            btnTitles={Object.keys(this.state)}
-            method={this.onBtnClick}
+  return (
+    <>
+      <Section title="Please leave feedback">
+        <FeedbackOptions
+          btnTitles={['good', 'neutral', 'bad']}
+          method={onBtnClick}
+        />
+      </Section>
+      <Section className title="Statistics">
+        {[good, neutral, bad].every(el => el === 0) ? (
+          <Notification message="There is no feedback" />
+        ) : (
+          <StyledStatistics
+            good={good}
+            neutral={neutral}
+            bad={bad}
+            total={countTotalFeedback()}
+            positivePercentage={Number.parseInt(
+              countPositiveFeedbackPercentage()
+            )}
           />
-        </Section>
-        <Section className title="Statistics">
-          {Object.values(this.state).every(el => el === 0) ? (
-            <Notification message="There is no feedback" />
-          ) : (
-            <StyledStatistics
-              good={good}
-              neutral={neutral}
-              bad={bad}
-              total={this.countTotalFeedback()}
-              positivePercentage={Number.parseInt(
-                this.countPositiveFeedbackPercentage()
-              )}
-            />
-          )}
-        </Section>
-      </>
-    );
-  }
+        )}
+      </Section>
+    </>
+  );
 }
